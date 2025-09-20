@@ -30,12 +30,9 @@ input = getProfiles(m, n, resistiveSimu, profiles, toPlot, opts);
     input.alpha, input.alphap, input.R0, input.rStar, input.RS, input.RSp,...
     input.RSm, input.elong, input.triangByR);
 % Options:
-[additionalPlot, blockCouplingAfterRSp, addShaping, ...
-    higherOscModes, reverse_qprofile, sidebandMercier, ...
-    NeumannBC, N_tries]...
-    = deal(input.additionalPlot, input.blockCouplingAfterRSp, input.addShaping, ...
-    input.higherOscModes, input.reverse_qprofile,...
-    input.sidebandMercier, input.NeumannBC, input.N_tries);
+[additionalPlot, addShaping, higherOscModes, reverse_qprofile,  NeumannBC,...
+    N_tries] = deal(input.additionalPlot, input.addShaping, ...
+    input.higherOscModes, input.reverse_qprofile, input.NeumannBC, input.N_tries);
 
 
 % Set up grid, it is bunched around rational surfaces of the main harmonic
@@ -78,7 +75,7 @@ QMinusp = @(x) -2.*(q(x).^(-1) - n/(m-1)).*qp(x)./(q(x).^2);
 dqqs = @(x) (q(x) - qs)./qs;
 dqqsp = @(x) qp(x)./qs;
 
-% first outputs:
+% First outputs:
 
 result.rgrid = xall;
 result.RS = RS;
@@ -113,7 +110,7 @@ SmG_0D = []; SmG_1D = []; SmG_2D = [];
 Sm_sm_0D = []; Sm_sm_1D = []; Sm_sm_2D = [];
 Sm_m_0D = []; Sm_m_1D = []; Sm_m_2D = [];
 
-defineFMidealOperators; % nested function which defines all operators 
+defineLEMPoIdealOperators; % nested function which defines all operators 
 %                         initialised above, model-specific.
 
 
@@ -143,7 +140,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Nested functions 
 applyBCs; 
-[A,B] = buildFMidealMatrices();  
+[A,B] = buildLEMPoIdealMatrices();  
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%      Solve Eigenvalue Problem 
@@ -182,13 +179,13 @@ end
  % sideband). So the bit below calls the subfunction reverseChangeVariables
  % to return to the original sidebands expression. (See below eq. 10 in
  % paper "Fundamental properties of ideal and resistive infernal modes in
- % tokamaks"
+ % tokamaks")
 
  Xip = reverseChangeVariablesSid(xall, Xi, [], Xip,N,  "upper",ev,  m, dqqs, deltap, rStar, ...
-                        RSp, NeumannBC, resistiveSimu, additionalPlot);
+                        RSp, NeumannBC, resistiveSimu, additionalPlot, []);
  if m~=1
      Xim = reverseChangeVariablesSid(xall, Xi, [], Xim,N,  "lower",ev, m, dqqs, deltap, rStar, ...
-                        RSp, NeumannBC, resistiveSimu, additionalPlot);
+                        RSp, NeumannBC, resistiveSimu, additionalPlot, []);
  end
 % (utils function)
 
@@ -220,7 +217,7 @@ end
 %%      Nested Functions (model-specific)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function defineFMidealOperators()
+function defineLEMPoIdealOperators()
     % How are the elements named in this subfunction :
     %   X_Y_ZD : 
     %   - X corresponds to the equation we are looking at. It can be the main
@@ -240,6 +237,8 @@ function defineFMidealOperators()
     % xi^m '' + M_sp_0D * xi^m+1 + M_sp_1D * xi^m+1 ' + M_sp_2D * xi^m+1 ''
     % + M_sm_0D * xi^m-1 etc ...
 
+    % Everything is multiplied by r in the code, wrt the paper or the
+    % documentation.
 
     % Coefficients in the main mode equation
     MG_0D = @(x) -x.*(m^2-1).*(1+2*qs^2)./(m^2);
@@ -336,11 +335,7 @@ function defineFMidealOperators()
     if AddR2
         Sp_m_0D = @(x) Sp_m_0D(x) - x.*( (2+m).*(iar(x) +alpha(x) -4.*deltap(x)).*dqqs(x))./(qs.^2); %
     end
-    
-    if sidebandMercier % line below is if we want to add Mercier stabilization 
-                          % to the sideband
-        Sp_sp_0D = @(x) Sp_sp_0D(x) - x.*iar(x).*alpha(x).*(qsp.^(-2) - 1)./qsp.^2; %
-    end
+
     
     % Coefficients in the lower sideband equation : 
     if m~=1
@@ -373,10 +368,6 @@ function defineFMidealOperators()
             % %
         end
     
-        if sidebandMercier % line below is if we want to add Mercier stabilization 
-                      % to the sideband
-            Sm_sm_0D = @(x) Sm_sm_0D(x) - x.*iar(x).*alpha(x).*(qsm.^(-2) - 1)./qsm.^2; %
-        end
     end
 end
 
@@ -401,18 +392,8 @@ function applyBCs()
              M_m(ii,ii) = 1.;
          end
          M_sp(ii,:) = 0; M_sp(:,ii) = 0; M_sp(ii,ii) = 0.;
-         if blockCouplingAfterRSp
-               for j=indRSpSup:N
-                   M_sp(j,:) = 0;
-               end
-         end
          if m~=1
-             M_sm(ii,:) = 0; M_sm(:,ii) = 0; M_sm(ii,ii) = 0.;
-             if blockCouplingAfterRSp
-               for j=indRSpSup:N
-                   M_sm(j,:) = 0;
-               end
-            end
+             M_sm(ii,:) = 0; M_sm(:,ii) = 0; M_sm(ii,ii) = 0.;   
          end
      
          if NeumannBC
@@ -439,7 +420,7 @@ function applyBCs()
      end
 end
 
-function [A,B] = buildFMidealMatrices()
+function [A,B] = buildLEMPoIdealMatrices()
 % Here we build A and B to solve A v = gamma/omegaA B v
     
     Z = sparse(N,N) ;

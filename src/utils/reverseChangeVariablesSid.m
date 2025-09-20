@@ -1,6 +1,6 @@
 function XiFinal = reverseChangeVariablesSid(xall, Xi, Chi, XiBar, N, ...
     sidebandKind,ev, m, dqqs, deltap, rStar, RSp, NeumannBC, resistiveSimu,...
-    additionalPlot)
+    additionalPlot, coefResMainChi)
 
 % We computed everything for Xip bar, so variable Xip is actually
 % the bar variable for now (Respectively Xim bar, and Xim for the lower

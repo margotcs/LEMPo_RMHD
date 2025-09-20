@@ -43,24 +43,26 @@ legend('\alpha', '\alpha / r')
 title('\alpha profile')
 
 if resistiveSimu
-    cl = EPFLcolors();  % Get the struct with all colors
-    colortab = {'groseille', 'canard', 'rose', 'zinzolin', 'chartreuse', 'montRose', 'ardoise', 'vertDeau'};
-    colormat = cell2mat(cellfun(@(c) EPFLcolors.(c), colortab, 'UniformOutput', false));
+    cl = EPFLcolors();  % EPFL color palette (in utils)
+    colortab = {'groseille', 'canard', 'rose', 'zinzolin', 'chartreuse', ...
+        'montRose', 'ardoise', 'vertDeau'};
+    colormat = cellfun(@(c) cl.(c), colortab, 'UniformOutput', false);
+    colormat = cat(1, colormat{:});
 
 
     figure
-    set(gca,'ColorOrder',EPFLcolors(colortab),'nextplot','replacechildren')
+    set(gca,'ColorOrder',colormat,'nextplot','replacechildren')
     set(gca,'FontName','Cambria Math' ) 
 
-    plot(xall, coefResMainChi, xall, coefResSidChi, 'LineWidth',3);
-    for i=1:max(size(RS))
-       xline(double(RS(i)), '--', 'LineWidth', 2, 'Color','#B51F1F');
+    plot(xall, inputs.coefResMainChi, xall, inputs.coefResSidChi, 'LineWidth',3);
+    for i=1:max(size(inputs.RS))
+       xline(double(inputs.RS(i)), '--', 'LineWidth', 2, 'Color',cl.groseille);
     end
-    if ~isempty(RSp)
-        xline(RSp, '--', 'LineWidth', 2,'Color', '#007480');
+    if ~isempty(inputs.RSp)
+        xline(inputs.RSp, '--', 'LineWidth', 2,'Color', cl.canard);
     end
-    if ~isempty(RSm)
-        xline(RSm, '--', 'LineWidth', 2);
+    if ~isempty(inputs.RSm)
+        xline(inputs.RSm, '--', 'LineWidth', 2);
     end
     legend('Coef. for  \chi^{(m)} in equations', 'Coef. for  \chi^{(m+1)} in equations',...
             'r_m', 'r_{m+1}', 'r_{m-1}');

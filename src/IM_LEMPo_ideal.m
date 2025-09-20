@@ -161,7 +161,10 @@ function defineIMidealOperators()
     % A Xi. DRX will be in the A matrix (contains Mercier term, FLB etc)
     %   - Z is 1 if we are looking at the first derivative of the variable
     %   given by Y, 2 for second derivative, etc.
-
+    
+    % Everything is multiplied by r in the code, wrt the paper or the
+    % documentation.
+    
     DLX_0D = @(x) x - x./m.^2 + (2.*x.*m.^2)./n.^2 - 2.*x/n.^2  ; %%%
     DLX_1D = @(x) -3.*x.^2.*m.^(-2) - 2.*x.^2./n.^2  ;    % 
     DLX_2D = @(x) -x.^3.*m.^(-2) - 2.*x.^3./n.^2  ;    %  

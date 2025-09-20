@@ -52,7 +52,7 @@ while notconverge
     end
 
 
-   if (ev == -0.01) || isnan(ev) || ~isreal(ev)
+   if (ev == -0.01) || isnan(ev) || ~isreal(D)
         warning('Guess %e was too high, new guess is :', ev_guess);
         ev_guess = 0.7*ev_guess
         result.warning = 1;

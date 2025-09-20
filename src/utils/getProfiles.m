@@ -94,7 +94,7 @@ if isfield(profiles, 'RSp')
    input.RSp = profiles.RSp;
 else
     try 
-        RSp = vpasolve(q(x) == (m+1)/n , x ,[0,1]); 
+        RSp = vpasolve(input.q(x) == (m+1)/n , x ,[0,1]); 
         input.RSp = double(RSp);
         if isempty(nonzeros(input.RSp))
             input.RSp = [];
@@ -109,7 +109,7 @@ if isfield(profiles, 'RSm')
    input.RSm = profiles.RSm;
 else
     try 
-        RSm = vpasolve(q(x) == (m-1)/n , x ,[0,1]); 
+        RSm = vpasolve(input.q(x) == (m-1)/n , x ,[0,1]); 
         input.RSm = double(RSm);
         if isempty(nonzeros(input.RSm))
             input.RSm = [];
@@ -236,13 +236,13 @@ end
 input.NeumannBC = 0;
 if ~isempty(opts) && isfield(opts, 'upperBound')
     input.upperBound = opts.upperBound;
-    if isempty(input.RSp) || (input.upperBound <= RSp - 1e-4)  
-        input.NeumannBC = 1;
-        warning(['As the simulation upper boundary is within upper rational', ...
-        'surface, Neumann BCs are assumed.']);
-    end
 else
     input.upperBound = 1;
+end
+if isempty(input.RSp) || (input.upperBound <= input.RSp - 1e-4)  
+    input.NeumannBC = 1;
+    warning(['As the simulation upper boundary is within upper rational', ...
+    'surface, Neumann BCs are assumed.']);
 end
 
 input.reverse_qprofile = 0;
@@ -279,11 +279,9 @@ if resistiveSimu
         if opts.resOnlyOnMainRatSurf == 1
             input.resOnlyOnMainRatSurf = 1;
         end
-    end
-    if ~isempty(opts) &&  isfield(opts, 'resOnlyOnSidRatSurf')
-          if opts.resOnlyOnSidRatSurf == 1
-             input.resOnlyOnSidRatSurf = 1;
-          end
+    elseif input.NeumannBC % if we stop before the upper rational surface,
+        % no need to include resistivity there.
+        input.resOnlyOnMainRatSurf = 1;
     end
 
     % Model were we neglect perpendicular perturbation to potential vector
@@ -293,12 +291,6 @@ if resistiveSimu
           if opts.neglectDeltaBParallel == 1
              input.neglectDeltaBParallel = 1;
           end
-    end
-
-    if isempty(input.RSp)
-        input.resOnlyOnMainRatSurf = 1;
-        warning(['No upper sideband rational surface in the plasma : resistivity only ...' ...
-            'on the main rat. surf.'])
     end
 
     % Model where we do not include compression effects
