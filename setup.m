@@ -15,7 +15,7 @@
 projectRoot = fileparts(mfilename('fullpath'));
 
 % Add the main src folder (and all subfolders, e.g., utils)
-srcPath = fullfile(projectRoot, '00_src');
+srcPath = fullfile(projectRoot, 'src');
 if exist(srcPath, 'dir')
     addpath(genpath(srcPath));
 else

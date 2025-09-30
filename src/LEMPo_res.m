@@ -73,9 +73,9 @@ AddM = 1; AddR = 1; % these 2 appear only for m=1
 
 
 % Multiplication factors for the variables on the plots
-FactorChi = 10;
-FactorSid = 1;
-FactorDeltaXi = 1;
+factorChi = 10;
+factorSid = 1;
+factorDeltaXi = 1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%      Definitions of Some Quantities and First Outputs 
@@ -124,6 +124,8 @@ result.deltap = deltap(xall);
 result.elong = elong;
 result.triangByR = triangByR;
 result.SL = SL;
+result.omegaS = sound(xall);
+result.omegaA = alfven(xall);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%      Plot Profiles (if requested)
@@ -262,27 +264,27 @@ end
 Xi =  V(1:N) ;
 maxXi = max(Xi);
 Xi = Xi/maxXi;
-Chi = V(2*N+1:3*N) ; Chi = FactorChi.*Chi./maxXi;
-Xip =  V(3*N+1:4*N) ; Xip = FactorSid.*Xip./maxXi;
+Chi = V(2*N+1:3*N) ; Chi = factorChi.*Chi./maxXi;
+Xip =  V(3*N+1:4*N) ; Xip = factorSid.*Xip./maxXi;
 
 if m~=1
     if NeumannBC
-        Xim =  V(4*N+1:5*N) ; Xim = FactorSid.*Xim./maxXi;
+        Xim =  V(4*N+1:5*N) ; Xim = factorSid.*Xim./maxXi;
         if ~noCompr
-            DeltaXi = V(5*N+1: 6*N); DeltaXi = FactorDeltaXi.*DeltaXi./maxXi;
+            DeltaXi = V(5*N+1: 6*N); DeltaXi = factorDeltaXi.*DeltaXi./maxXi;
         end
     else
-         Xim =  V(5*N+1:6*N) ; Xim = FactorSid.*Xim./maxXi;
+         Xim =  V(5*N+1:6*N) ; Xim = factorSid.*Xim./maxXi;
          if ~noCompr
-            DeltaXi = V(7*N+1: 8*N); DeltaXi = FactorDeltaXi.*DeltaXi./maxXi;
+            DeltaXi = V(7*N+1: 8*N); DeltaXi = factorDeltaXi.*DeltaXi./maxXi;
          end
      end
 else
     if ~noCompr
         if NeumannBC
-            DeltaXi = V(4*N+1: 5*N); DeltaXi = FactorDeltaXi.*DeltaXi./maxXi;
+            DeltaXi = V(4*N+1: 5*N); DeltaXi = factorDeltaXi.*DeltaXi./maxXi;
         else
-            DeltaXi = V(5*N+1: 6*N); DeltaXi = FactorDeltaXi.*DeltaXi./maxXi;
+            DeltaXi = V(5*N+1: 6*N); DeltaXi = factorDeltaXi.*DeltaXi./maxXi;
         end
     end
 end
@@ -315,9 +317,9 @@ result.Xi = Xi;
 result.ev = ev; % in the resistive code we obtain the growth rate non square,
 % so no need for square root here
 result.Xip = Xip;
-result.Chi = Chi./FactorChi;
+result.Chi = Chi./factorChi;
 if ~noCompr
-    result.DeltaXi = DeltaXi./FactorDeltaXi;
+    result.DeltaXi = DeltaXi./factorDeltaXi;
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -916,20 +918,20 @@ end
 
 function makePlots()
 
+    cl = EPFLcolors();  % EPFL color palette (in utils)
+    colortab = {'groseille', 'canard', 'rose', 'zinzolin', 'chartreuse', ...
+        'montRose', 'ardoise', 'vertDeau'};
+    colormat = cellfun(@(c) cl.(c), colortab, 'UniformOutput', false);
+    colormat = cat(1, colormat{:});
+
     figure
     set(0,'defaultTextInterpreter','tex');   
     set(0, 'DefaultLineLineWidth', 3);
     set(groot,'defaultLineMarkerSize',12);
     set(gca,'TickLabelInterpreter','tex');
     set(0, 'DefaultAxesFontSize', 20)
-    
-    colortab = {'groseille', 'canard','rose' ,  'zinzolin', 'chartreuse', 'montRose', 'ardoise','vertDeau'};
-    colormatRGB = MakeColorMat(colortab);
-    
-    
-    set(gca,'ColorOrder',colormatRGB,'nextplot','replacechildren')
-     
-    
+    set(gca,'ColorOrder',colormat,'nextplot','replacechildren')
+ 
     if m~=1
        plot(xall, Xi, '.-',xall, Xip, '.-', xall, Xim, '.-', xall, Chi, '.-','LineWidth',3,'MarkerSize',12);
        hold on
@@ -946,12 +948,12 @@ function makePlots()
             xline(RSp, '--', 'LineWidth', 2,'Color', '#007480');
        end
        if ~noCompr
-            legend('\xi^{(m)}', [num2str(FactorSid),' \xi^{(m+1)}'], [num2str(FactorSid),...
-                 ' \xi^{(m-1)}'], [num2str(FactorChi),' \chi'], [num2str(FactorDeltaXi), ...
+            legend('\xi^{(m)}', [num2str(factorSid),' \xi^{(m+1)}'], [num2str(factorSid),...
+                 ' \xi^{(m-1)}'], [num2str(factorChi),' \chi'], [num2str(factorDeltaXi), ...
                     ' \Delta \xi_{\Gamma}'], 'r_s', 'r_{m+1}')
        else
-           legend('\xi^{(m)}', [num2str(FactorSid),' \xi^{(m+1)}'], [num2str(FactorSid),...
-                 ' \xi^{(m-1)}'], [num2str(FactorChi),' \chi'], 'r_s', 'r_{m+1}')
+           legend('\xi^{(m)}', [num2str(factorSid),' \xi^{(m+1)}'], [num2str(factorSid),...
+                 ' \xi^{(m-1)}'], [num2str(factorChi),' \chi'], 'r_s', 'r_{m+1}')
        end
         
        ylabel('[a.u]');
@@ -972,10 +974,10 @@ function makePlots()
             xline(RSp, '--', 'LineWidth', 2,'Color', '#007480');
        end
        if ~noCompr
-           legend('\xi^{(m)}', [num2str(FactorSid),' \xi^{(m+1)}'], [num2str(FactorChi),...
-                  ' \chi'], [num2str(FactorDeltaXi), ' \Delta \xi_{\Gamma}'], 'r_s', 'r_{m+1}')
+           legend('\xi^{(m)}', [num2str(factorSid),' \xi^{(m+1)}'], [num2str(factorChi),...
+                  ' \chi'], [num2str(factorDeltaXi), ' \Delta \xi_{\Gamma}'], 'r_s', 'r_{m+1}')
        else
-           legend('\xi^{(m)}', [num2str(FactorSid),' \xi^{(m+1)}'], [num2str(FactorChi),...
+           legend('\xi^{(m)}', [num2str(factorSid),' \xi^{(m+1)}'], [num2str(factorChi),...
               ' \chi'], 'r_s', 'r_{m+1}')
        end
        ylabel('[a.u]');
